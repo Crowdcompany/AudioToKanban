@@ -154,12 +154,14 @@ class AudioKanban {
 
 Vorhandene Aufgaben: ${this.tasks.map(t => `#${t.number || t.id}: ${t.title}`).join(', ')}
 
-Wenn es sich um das Ändern der Priorität handelt (z.B. "setze die Priorität auf hoch für Aufgabe 5", "Priorität hoch für Task 3", "Aufgabe 2 auf hohe Priorität"), antworte mit:
+WICHTIG: Prüfe zuerst diese Aktionen in genau dieser Reihenfolge:
+
+1. BEARBEITEN: Wenn die Spracheingabe "ändere", "bearbeite", "umbenennen", "Titel" oder "heißt jetzt" enthält UND eine Aufgabennummer erwähnt (z.B. "ändere Aufgabe 6 zu Optiker Termin", "ändere den Titel für Aufgabe 6 in Optiker Termin"), antworte mit:
+{"action": "editTask", "taskNumber": 6, "newTitle": "Optiker Termin"}
+
+2. PRIORITÄT: Wenn es sich um das Ändern der Priorität handelt (z.B. "setze die Priorität auf hoch für Aufgabe 5", "Priorität hoch für Task 3"), antworte mit:
 {"action": "setPriority", "taskNumber": 5, "priority": "High"} 
 Verwende "High" für hoch/wichtig, "Medium" für mittel/normal, "Low" für niedrig/gering.
-
-Wenn es sich um das Bearbeiten eines Task-Titels handelt (z.B. "ändere Aufgabe 3 zu neuer Titel", "bearbeite Task 5 zu korrigierter Text", "Aufgabe 2 umbenennen in besser"), antworte mit:
-{"action": "editTask", "taskNumber": 3, "newTitle": "neuer Titel"}
 
 Wenn es sich um das Hinzufügen eines Kommentars handelt (z.B. "füge der aufgabe 1 den kommentar xyz hinzu"), antworte mit:
 {"action": "addComment", "taskNumber": 1, "comment": "Der Kommentartext"}
