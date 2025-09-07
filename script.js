@@ -211,10 +211,13 @@ Ansonsten für eindeutig neue Aufgaben:
                 this.voiceStatus.className = 'voice-status success';
             }
             
-            setTimeout(() => {
-                this.voiceStatus.textContent = '';
-                this.voiceStatus.className = 'voice-status';
-            }, 3000);
+            // Nur bei Erfolg/Error automatisch verschwinden lassen, NICHT bei Clarifying
+            if (!this.voiceStatus.className.includes('clarifying')) {
+                setTimeout(() => {
+                    this.voiceStatus.textContent = '';
+                    this.voiceStatus.className = 'voice-status';
+                }, 3000);
+            }
 
         } catch (error) {
             console.error('Fehler beim Verarbeiten der Aufgabe:', error);
@@ -401,9 +404,11 @@ Ansonsten für eindeutig neue Aufgaben:
                 <button class="clarify-btn" onclick="app.createNewTask('${spokenText}')" style="margin: 5px; padding: 8px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">
                     Neue Aufgabe: "${spokenText}"
                 </button>
-                <button class="clarify-btn" onclick="app.cancelClarification()" style="margin: 5px; padding: 8px 12px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                    Abbrechen
-                </button>
+                <div style="margin-top: 10px;">
+                    <button class="clarify-btn" onclick="app.cancelClarification()" style="margin: 5px; padding: 8px 12px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        ❌ Schließen
+                    </button>
+                </div>
             </div>
         `;
         this.voiceStatus.className = 'voice-status clarifying';
@@ -429,10 +434,8 @@ Ansonsten für eindeutig neue Aufgaben:
     }
 
     cancelClarification() {
-        setTimeout(() => {
-            this.voiceStatus.textContent = '';
-            this.voiceStatus.className = 'voice-status';
-        }, 3000);
+        this.voiceStatus.textContent = '';
+        this.voiceStatus.className = 'voice-status';
     }
 
     renderTasks() {
