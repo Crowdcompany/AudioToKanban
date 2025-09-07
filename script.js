@@ -158,6 +158,9 @@ Wenn es sich um das Ändern der Priorität handelt (z.B. "setze die Priorität a
 {"action": "setPriority", "taskNumber": 5, "priority": "High"} 
 Verwende "High" für hoch/wichtig, "Medium" für mittel/normal, "Low" für niedrig/gering.
 
+Wenn es sich um das Bearbeiten eines Task-Titels handelt (z.B. "ändere Aufgabe 3 zu neuer Titel", "bearbeite Task 5 zu korrigierter Text", "Aufgabe 2 umbenennen in besser"), antworte mit:
+{"action": "editTask", "taskNumber": 3, "newTitle": "neuer Titel"}
+
 Wenn es sich um das Hinzufügen eines Kommentars handelt (z.B. "füge der aufgabe 1 den kommentar xyz hinzu"), antworte mit:
 {"action": "addComment", "taskNumber": 1, "comment": "Der Kommentartext"}
 
@@ -203,6 +206,16 @@ Ansonsten für eindeutig neue Aufgaben:
             
             if (taskData.action === 'setPriority') {
                 this.setTaskPriority(taskData.taskNumber, taskData.priority);
+                if (!this.isShowingClarification) {
+                    setTimeout(() => {
+                        if (!this.isShowingClarification) {
+                            this.voiceStatus.textContent = '';
+                            this.voiceStatus.className = 'voice-status';
+                        }
+                    }, 3000);
+                }
+            } else if (taskData.action === 'editTask') {
+                this.editTaskByNumber(taskData.taskNumber, taskData.newTitle);
                 if (!this.isShowingClarification) {
                     setTimeout(() => {
                         if (!this.isShowingClarification) {
@@ -378,6 +391,26 @@ Ansonsten für eindeutig neue Aufgaben:
             this.voiceStatus.className = 'voice-status success';
         } else {
             this.voiceStatus.textContent = `❌ Aufgabe #${taskNumber} nicht gefunden`;
+            this.voiceStatus.className = 'voice-status error';
+        }
+    }
+
+    editTaskByNumber(taskNumber, newTitle) {
+        const task = this.tasks.find(t => (t.number || t.id) == taskNumber);
+        
+        if (task && newTitle && newTitle.trim()) {
+            this.saveStateForUndo();
+            const oldTitle = task.title;
+            task.title = newTitle.trim();
+            this.saveTasks();
+            this.renderTasks();
+            this.voiceStatus.textContent = `✅ Aufgabe #${taskNumber} geändert von "${oldTitle}" zu "${newTitle}"`;
+            this.voiceStatus.className = 'voice-status success';
+        } else if (!task) {
+            this.voiceStatus.textContent = `❌ Aufgabe #${taskNumber} nicht gefunden`;
+            this.voiceStatus.className = 'voice-status error';
+        } else {
+            this.voiceStatus.textContent = `❌ Neuer Titel darf nicht leer sein`;
             this.voiceStatus.className = 'voice-status error';
         }
     }
@@ -599,7 +632,7 @@ Ansonsten für eindeutig neue Aufgaben:
                 <span class="task-priority ${priority}">${task.priority || 'Medium'}</span>
                 <button class="task-delete" onclick="app.deleteTask(${task.id})">×</button>
             </div>
-            <div class="task-title">${task.title}</div>
+            <div class="task-title" onclick="app.editTaskTitle(${task.id}, this)" title="Klicken zum Bearbeiten">${task.title}</div>
             <div class="task-project">${task.project}</div>
             ${commentsHtml}
             <div class="task-created">${new Date(task.created).toLocaleDateString('de-DE')}</div>
@@ -617,6 +650,62 @@ Ansonsten für eindeutig neue Aufgaben:
         this.tasks = this.tasks.filter(task => task.id !== taskId);
         this.saveTasks();
         this.renderTasks();
+    }
+
+    editTaskTitle(taskId, titleElement) {
+        const task = this.tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        this.saveStateForUndo();
+        
+        // Erstelle Input-Field
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = task.title;
+        input.style.cssText = 'width: 100%; padding: 4px; border: 2px solid #3498db; border-radius: 4px; font-size: inherit; font-family: inherit;';
+        
+        // Ersetze Text temporär
+        const originalText = titleElement.textContent;
+        titleElement.innerHTML = '';
+        titleElement.appendChild(input);
+        titleElement.onclick = null;
+        
+        // Fokus und Select
+        input.focus();
+        input.select();
+        
+        const saveEdit = () => {
+            const newTitle = input.value.trim();
+            if (newTitle && newTitle !== task.title) {
+                task.title = newTitle;
+                this.saveTasks();
+                this.renderTasks();
+                this.voiceStatus.textContent = `✅ Aufgabe #${task.number || task.id} geändert zu: "${newTitle}"`;
+                this.voiceStatus.className = 'voice-status success';
+                setTimeout(() => {
+                    this.voiceStatus.textContent = '';
+                    this.voiceStatus.className = 'voice-status';
+                }, 3000);
+            } else {
+                this.renderTasks(); // Undo changes
+            }
+        };
+        
+        const cancelEdit = () => {
+            this.renderTasks(); // Undo changes
+        };
+        
+        // Event Listeners
+        input.addEventListener('blur', saveEdit);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveEdit();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelEdit();
+            }
+        });
     }
 
     exportCSV() {

@@ -349,6 +349,14 @@ button:disabled {
     font-weight: bold;
     margin-bottom: 0.5rem;
     color: #2c3e50;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.task-title:hover {
+    background-color: #ecf0f1;
 }
 
 .task-project {
