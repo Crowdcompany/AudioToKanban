@@ -433,30 +433,61 @@ Ansonsten für eindeutig neue Aufgaben:
         // Verhindere alle anderen Timeouts
         this.isShowingClarification = true;
         
-        this.voiceStatus.innerHTML = `
-            <div style="text-align: left;">
-                <p><strong>🤔 Verstanden: "${spokenText}"</strong></p>
-                <p>Meinten Sie eine dieser Aufgaben?</p>
-                <div style="margin: 10px 0;">
-                    ${suggestions.map((suggestion, index) => 
-                        `<button class="clarify-btn" onclick="app.selectSuggestion('${suggestion}')" style="margin: 5px; padding: 8px 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                            ${suggestion}
-                        </button>`
-                    ).join('')}
-                </div>
-                <button class="clarify-btn" onclick="app.createNewTask('${spokenText}')" style="margin: 5px; padding: 8px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                    Neue Aufgabe: "${spokenText}"
-                </button>
-                <div style="margin-top: 10px;">
-                    <button class="clarify-btn" onclick="app.cancelClarification()" style="margin: 5px; padding: 8px 12px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        ❌ Schließen
-                    </button>
-                </div>
-            </div>
-        `;
+        // Container erstellen
+        const container = document.createElement('div');
+        container.style.textAlign = 'left';
+        
+        // Überschrift
+        const title = document.createElement('p');
+        title.innerHTML = `<strong>🤔 Verstanden: "${spokenText}"</strong>`;
+        container.appendChild(title);
+        
+        const subtitle = document.createElement('p');
+        subtitle.textContent = 'Meinten Sie eine dieser Aufgaben?';
+        container.appendChild(subtitle);
+        
+        // Suggestion Buttons
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.margin = '10px 0';
+        
+        suggestions.forEach(suggestion => {
+            const btn = document.createElement('button');
+            btn.textContent = suggestion;
+            btn.className = 'clarify-btn';
+            btn.style.cssText = 'margin: 5px; padding: 8px 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;';
+            btn.addEventListener('click', () => this.selectSuggestion(suggestion));
+            buttonContainer.appendChild(btn);
+        });
+        
+        container.appendChild(buttonContainer);
+        
+        // Neue Aufgabe Button
+        const newTaskBtn = document.createElement('button');
+        newTaskBtn.textContent = `Neue Aufgabe: "${spokenText}"`;
+        newTaskBtn.className = 'clarify-btn';
+        newTaskBtn.style.cssText = 'margin: 5px; padding: 8px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;';
+        newTaskBtn.addEventListener('click', () => this.createNewTask(spokenText));
+        container.appendChild(newTaskBtn);
+        
+        // Schließen Button
+        const closeContainer = document.createElement('div');
+        closeContainer.style.marginTop = '10px';
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '❌ Schließen';
+        closeBtn.className = 'clarify-btn';
+        closeBtn.style.cssText = 'margin: 5px; padding: 8px 12px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;';
+        closeBtn.addEventListener('click', () => this.cancelClarification());
+        closeContainer.appendChild(closeBtn);
+        
+        container.appendChild(closeContainer);
+        
+        // Container einsetzen
+        this.voiceStatus.innerHTML = '';
+        this.voiceStatus.appendChild(container);
         this.voiceStatus.className = 'voice-status clarifying';
         
-        console.log('✅ Clarification dialog set, className:', this.voiceStatus.className);
+        console.log('✅ Clarification dialog set with event listeners');
     }
 
     selectSuggestion(taskTitle) {
