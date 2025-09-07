@@ -157,8 +157,11 @@ Vorhandene Aufgaben: ${this.tasks.map(t => `#${t.number || t.id}: ${t.title}`).j
 
 WICHTIG: Prüfe zuerst diese Aktionen in genau dieser Reihenfolge:
 
-1. BEARBEITEN: Wenn die Spracheingabe "ändere", "bearbeite", "umbenennen", "Titel" oder "heißt jetzt" enthält UND eine Aufgabennummer erwähnt (z.B. "ändere Aufgabe 6 zu Optiker Termin", "ändere den Titel für Aufgabe 6 in Optiker Termin"), antworte mit:
+1. TITEL BEARBEITEN: Wenn die Spracheingabe "ändere", "bearbeite", "umbenennen", "Titel" oder "heißt jetzt" enthält UND eine Aufgabennummer erwähnt (z.B. "ändere Aufgabe 6 zu Optiker Termin", "ändere den Titel für Aufgabe 6 in Optiker Termin"), antworte mit:
 {"action": "editTask", "taskNumber": 6, "newTitle": "Optiker Termin"}
+
+1b. PROJEKT BEARBEITEN: Wenn die Spracheingabe "Projekt", "Kategorie" und "ändere"/"setze" enthält (z.B. "ändere das Projekt von Aufgabe 3 zu Arbeit", "setze Kategorie für Task 2 auf Privat"), antworte mit:
+{"action": "editProject", "taskNumber": 3, "newProject": "Arbeit"}
 
 2. PRIORITÄT: Wenn es sich um das Ändern der Priorität handelt (z.B. "setze die Priorität auf hoch für Aufgabe 5", "Priorität hoch für Task 3"), antworte mit:
 {"action": "setPriority", "taskNumber": 5, "priority": "High"} 
@@ -219,6 +222,16 @@ Ansonsten für eindeutig neue Aufgaben:
                 }
             } else if (taskData.action === 'editTask') {
                 this.editTaskByNumber(taskData.taskNumber, taskData.newTitle);
+                if (!this.isShowingClarification) {
+                    setTimeout(() => {
+                        if (!this.isShowingClarification) {
+                            this.voiceStatus.textContent = '';
+                            this.voiceStatus.className = 'voice-status';
+                        }
+                    }, 3000);
+                }
+            } else if (taskData.action === 'editProject') {
+                this.editProjectByNumber(taskData.taskNumber, taskData.newProject);
                 if (!this.isShowingClarification) {
                     setTimeout(() => {
                         if (!this.isShowingClarification) {
@@ -414,6 +427,26 @@ Ansonsten für eindeutig neue Aufgaben:
             this.voiceStatus.className = 'voice-status error';
         } else {
             this.voiceStatus.textContent = `❌ Neuer Titel darf nicht leer sein`;
+            this.voiceStatus.className = 'voice-status error';
+        }
+    }
+
+    editProjectByNumber(taskNumber, newProject) {
+        const task = this.tasks.find(t => (t.number || t.id) == taskNumber);
+        
+        if (task && newProject && newProject.trim()) {
+            this.saveStateForUndo();
+            const oldProject = task.project;
+            task.project = newProject.trim();
+            this.saveTasks();
+            this.renderTasks();
+            this.voiceStatus.textContent = `✅ Projekt von Aufgabe #${taskNumber} geändert von "${oldProject}" zu "${newProject}"`;
+            this.voiceStatus.className = 'voice-status success';
+        } else if (!task) {
+            this.voiceStatus.textContent = `❌ Aufgabe #${taskNumber} nicht gefunden`;
+            this.voiceStatus.className = 'voice-status error';
+        } else {
+            this.voiceStatus.textContent = `❌ Neues Projekt darf nicht leer sein`;
             this.voiceStatus.className = 'voice-status error';
         }
     }
@@ -620,14 +653,15 @@ Ansonsten für eindeutig neue Aufgaben:
 
         const commentsHtml = task.comments && task.comments.length > 0 
             ? `<div class="task-comments">
-                ${task.comments.map(comment => 
+                ${task.comments.map((comment, index) => 
                     `<div class="task-comment">
-                        <div class="comment-text">${comment.text}</div>
+                        <div class="comment-text" onclick="app.editTaskComment(${task.id}, ${index}, this)" title="Klicken zum Bearbeiten">${comment.text}</div>
                         <div class="comment-timestamp">${new Date(comment.timestamp).toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'})}</div>
                     </div>`
                 ).join('')}
+                <div class="add-comment" onclick="app.addNewComment(${task.id}, this)" title="Neuen Kommentar hinzufügen">+ Kommentar hinzufügen</div>
                </div>`
-            : '';
+            : `<div class="task-comments"><div class="add-comment" onclick="app.addNewComment(${task.id}, this)" title="Neuen Kommentar hinzufügen">+ Kommentar hinzufügen</div></div>`;
 
         div.innerHTML = `
             <div class="task-header">
@@ -636,7 +670,7 @@ Ansonsten für eindeutig neue Aufgaben:
                 <button class="task-delete" onclick="app.deleteTask(${task.id})">×</button>
             </div>
             <div class="task-title" onclick="app.editTaskTitle(${task.id}, this)" title="Klicken zum Bearbeiten">${task.title}</div>
-            <div class="task-project">${task.project}</div>
+            <div class="task-project" onclick="app.editTaskProject(${task.id}, this)" title="Klicken zum Bearbeiten">${task.project}</div>
             ${commentsHtml}
             <div class="task-created">${new Date(task.created).toLocaleDateString('de-DE')}</div>
         `;
@@ -665,17 +699,18 @@ Ansonsten für eindeutig neue Aufgaben:
         const input = document.createElement('input');
         input.type = 'text';
         input.value = task.title;
-        input.style.cssText = 'width: 100%; padding: 4px; border: 2px solid #3498db; border-radius: 4px; font-size: inherit; font-family: inherit;';
+        input.style.cssText = 'width: 100%; padding: 4px; border: 2px solid #3498db; border-radius: 4px; font-size: inherit; font-family: inherit; box-sizing: border-box; outline: none;';
         
         // Ersetze Text temporär
-        const originalText = titleElement.textContent;
         titleElement.innerHTML = '';
         titleElement.appendChild(input);
         titleElement.onclick = null;
         
-        // Fokus und Select
-        input.focus();
-        input.select();
+        // Fokus und Select mit Delay für bessere Kompatibilität
+        setTimeout(() => {
+            input.focus();
+            input.select();
+        }, 10);
         
         const saveEdit = () => {
             const newTitle = input.value.trim();
@@ -707,6 +742,157 @@ Ansonsten für eindeutig neue Aufgaben:
             } else if (e.key === 'Escape') {
                 e.preventDefault();
                 cancelEdit();
+            }
+        });
+    }
+
+    editTaskProject(taskId, projectElement) {
+        const task = this.tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        this.saveStateForUndo();
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = task.project || '';
+        input.style.cssText = 'width: 100%; padding: 4px; border: 2px solid #3498db; border-radius: 4px; font-size: inherit; font-family: inherit; box-sizing: border-box; outline: none;';
+        
+        projectElement.innerHTML = '';
+        projectElement.appendChild(input);
+        projectElement.onclick = null;
+        
+        setTimeout(() => {
+            input.focus();
+            input.select();
+        }, 10);
+        
+        const saveEdit = () => {
+            const newProject = input.value.trim() || 'Allgemein';
+            if (newProject !== task.project) {
+                task.project = newProject;
+                this.saveTasks();
+                this.renderTasks();
+                this.voiceStatus.textContent = `✅ Projekt von Aufgabe #${task.number || task.id} geändert zu: "${newProject}"`;
+                this.voiceStatus.className = 'voice-status success';
+                setTimeout(() => {
+                    this.voiceStatus.textContent = '';
+                    this.voiceStatus.className = 'voice-status';
+                }, 3000);
+            } else {
+                this.renderTasks();
+            }
+        };
+        
+        input.addEventListener('blur', saveEdit);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveEdit();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                this.renderTasks();
+            }
+        });
+    }
+
+    editTaskComment(taskId, commentIndex, commentElement) {
+        const task = this.tasks.find(t => t.id === taskId);
+        if (!task || !task.comments || !task.comments[commentIndex]) return;
+
+        this.saveStateForUndo();
+        
+        const input = document.createElement('textarea');
+        input.value = task.comments[commentIndex].text;
+        input.style.cssText = 'width: 100%; padding: 4px; border: 2px solid #3498db; border-radius: 4px; font-size: inherit; font-family: inherit; box-sizing: border-box; outline: none; min-height: 60px; resize: vertical;';
+        
+        commentElement.innerHTML = '';
+        commentElement.appendChild(input);
+        commentElement.onclick = null;
+        
+        setTimeout(() => {
+            input.focus();
+            input.select();
+        }, 10);
+        
+        const saveEdit = () => {
+            const newText = input.value.trim();
+            if (newText && newText !== task.comments[commentIndex].text) {
+                task.comments[commentIndex].text = newText;
+                task.comments[commentIndex].timestamp = new Date().toISOString();
+                this.saveTasks();
+                this.renderTasks();
+                this.voiceStatus.textContent = `✅ Kommentar bearbeitet für Aufgabe #${task.number || task.id}`;
+                this.voiceStatus.className = 'voice-status success';
+                setTimeout(() => {
+                    this.voiceStatus.textContent = '';
+                    this.voiceStatus.className = 'voice-status';
+                }, 3000);
+            } else {
+                this.renderTasks();
+            }
+        };
+        
+        input.addEventListener('blur', saveEdit);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                saveEdit();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                this.renderTasks();
+            }
+        });
+    }
+
+    addNewComment(taskId, addElement) {
+        const task = this.tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        this.saveStateForUndo();
+        
+        const input = document.createElement('textarea');
+        input.placeholder = 'Neuen Kommentar eingeben...';
+        input.style.cssText = 'width: 100%; padding: 4px; border: 2px solid #27ae60; border-radius: 4px; font-size: inherit; font-family: inherit; box-sizing: border-box; outline: none; min-height: 60px; resize: vertical;';
+        
+        addElement.innerHTML = '';
+        addElement.appendChild(input);
+        addElement.onclick = null;
+        
+        setTimeout(() => {
+            input.focus();
+        }, 10);
+        
+        const saveEdit = () => {
+            const newText = input.value.trim();
+            if (newText) {
+                if (!task.comments) {
+                    task.comments = [];
+                }
+                task.comments.push({
+                    text: newText,
+                    timestamp: new Date().toISOString()
+                });
+                this.saveTasks();
+                this.renderTasks();
+                this.voiceStatus.textContent = `✅ Kommentar hinzugefügt zu Aufgabe #${task.number || task.id}`;
+                this.voiceStatus.className = 'voice-status success';
+                setTimeout(() => {
+                    this.voiceStatus.textContent = '';
+                    this.voiceStatus.className = 'voice-status';
+                }, 3000);
+            } else {
+                this.renderTasks();
+            }
+        };
+        
+        input.addEventListener('blur', saveEdit);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                saveEdit();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                this.renderTasks();
             }
         });
     }
