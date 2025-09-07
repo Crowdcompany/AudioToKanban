@@ -154,6 +154,10 @@ class AudioKanban {
 
 Vorhandene Aufgaben: ${this.tasks.map(t => `#${t.number || t.id}: ${t.title}`).join(', ')}
 
+Wenn es sich um das Ändern der Priorität handelt (z.B. "setze die Priorität auf hoch für Aufgabe 5", "Priorität hoch für Task 3", "Aufgabe 2 auf hohe Priorität"), antworte mit:
+{"action": "setPriority", "taskNumber": 5, "priority": "High"} 
+Verwende "High" für hoch/wichtig, "Medium" für mittel/normal, "Low" für niedrig/gering.
+
 Wenn es sich um das Hinzufügen eines Kommentars handelt (z.B. "füge der aufgabe 1 den kommentar xyz hinzu"), antworte mit:
 {"action": "addComment", "taskNumber": 1, "comment": "Der Kommentartext"}
 
@@ -197,7 +201,17 @@ Ansonsten für eindeutig neue Aufgaben:
             console.log('Extracted JSON:', content);
             const taskData = JSON.parse(content);
             
-            if (taskData.action === 'move') {
+            if (taskData.action === 'setPriority') {
+                this.setTaskPriority(taskData.taskNumber, taskData.priority);
+                if (!this.isShowingClarification) {
+                    setTimeout(() => {
+                        if (!this.isShowingClarification) {
+                            this.voiceStatus.textContent = '';
+                            this.voiceStatus.className = 'voice-status';
+                        }
+                    }, 3000);
+                }
+            } else if (taskData.action === 'move') {
                 this.moveTask(taskData.taskTitle, taskData.newColumn);
                 // Auto-hide für move actions - nur wenn nicht clarifying
                 if (!this.isShowingClarification) {
@@ -352,6 +366,22 @@ Ansonsten für eindeutig neue Aufgaben:
         }
     }
 
+    setTaskPriority(taskNumber, priority) {
+        const task = this.tasks.find(t => (t.number || t.id) == taskNumber);
+        
+        if (task) {
+            this.saveStateForUndo();
+            task.priority = priority;
+            this.saveTasks();
+            this.renderTasks();
+            this.voiceStatus.textContent = `✅ Priorität von Aufgabe #${taskNumber} auf "${priority}" gesetzt`;
+            this.voiceStatus.className = 'voice-status success';
+        } else {
+            this.voiceStatus.textContent = `❌ Aufgabe #${taskNumber} nicht gefunden`;
+            this.voiceStatus.className = 'voice-status error';
+        }
+    }
+
     addCommentToTask(taskNumber, comment) {
         const task = this.tasks.find(t => (t.number || t.id) == taskNumber);
         
@@ -380,21 +410,24 @@ Ansonsten für eindeutig neue Aufgaben:
     findTaskByFuzzyMatch(searchTitle) {
         const search = searchTitle.toLowerCase();
         
+        // Filter nur gültige Tasks (nicht undefined/null)
+        const validTasks = this.tasks.filter(t => t && t.title);
+        
         // 1. Exakte Übereinstimmung
-        let task = this.tasks.find(t => t.title.toLowerCase() === search);
+        let task = validTasks.find(t => t.title.toLowerCase() === search);
         if (task) return task;
         
         // 2. Enthält den Suchbegriff
-        task = this.tasks.find(t => t.title.toLowerCase().includes(search));
+        task = validTasks.find(t => t.title.toLowerCase().includes(search));
         if (task) return task;
         
         // 3. Suchbegriff enthält Task-Titel
-        task = this.tasks.find(t => search.includes(t.title.toLowerCase()));
+        task = validTasks.find(t => search.includes(t.title.toLowerCase()));
         if (task) return task;
         
         // 4. Wort-für-Wort Matching (für Spracherkennungsfehler)
         const searchWords = search.split(' ');
-        task = this.tasks.find(t => {
+        task = validTasks.find(t => {
             const taskWords = t.title.toLowerCase().split(' ');
             return taskWords.some(taskWord => 
                 searchWords.some(searchWord => 
