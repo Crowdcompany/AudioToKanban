@@ -17,7 +17,7 @@
         <h1>Audio-to-Kanban</h1>
         <div class="pin-input-container">
             <h2>4-stelliger PIN eingeben</h2>
-            <input type="password" id="pinInput" maxlength="4" placeholder="****" autocomplete="off">
+            <input type="password" id="pinInput" maxlength="4" placeholder="1970" autocomplete="off">
             <button id="loginBtn">Anmelden</button>
             <div id="errorMessage" class="error"></div>
         </div>
@@ -33,6 +33,13 @@
             
             if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
                 errorMessage.textContent = 'Bitte 4-stelligen PIN eingeben';
+                return;
+            }
+            
+            if (pin !== '1970') {
+                errorMessage.textContent = 'Falscher PIN';
+                pinInput.value = '';
+                pinInput.focus();
                 return;
             }
             
