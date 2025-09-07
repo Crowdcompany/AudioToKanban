@@ -1,0 +1,4 @@
+title,column,priority,project,created,status
+"Beispielaufgabe 1","Todo","High","Beispielprojekt","2024-01-01T10:00:00.000Z","active"
+"In Bearbeitung","In Progress","Medium","Beispielprojekt","2024-01-01T11:00:00.000Z","active"
+"Abgeschlossene Aufgabe","Done","Low","Beispielprojekt","2024-01-01T12:00:00.000Z","active"

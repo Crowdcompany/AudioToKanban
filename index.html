@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3498db">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AudioKanban">
+    <title>Audio-to-Kanban - Login</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="login-container">
+        <h1>Audio-to-Kanban</h1>
+        <div class="pin-input-container">
+            <h2>4-stelliger PIN eingeben</h2>
+            <input type="password" id="pinInput" maxlength="4" placeholder="****" autocomplete="off">
+            <button id="loginBtn">Anmelden</button>
+            <div id="errorMessage" class="error"></div>
+        </div>
+    </div>
+
+    <script>
+        const pinInput = document.getElementById('pinInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const errorMessage = document.getElementById('errorMessage');
+
+        function handleLogin() {
+            const pin = pinInput.value;
+            
+            if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+                errorMessage.textContent = 'Bitte 4-stelligen PIN eingeben';
+                return;
+            }
+            
+            const loginData = {
+                pin: pin,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem('audioKanbanLogin', JSON.stringify(loginData));
+            window.location.href = 'app.html';
+        }
+
+        // Prüfe ob bereits eingeloggt (24h gültig)
+        function checkExistingLogin() {
+            const loginData = localStorage.getItem('audioKanbanLogin');
+            if (loginData) {
+                try {
+                    const data = JSON.parse(loginData);
+                    const now = Date.now();
+                    const twentyFourHours = 24 * 60 * 60 * 1000;
+                    
+                    if (now - data.timestamp < twentyFourHours) {
+                        window.location.href = 'app.html';
+                        return;
+                    } else {
+                        // Login abgelaufen
+                        localStorage.removeItem('audioKanbanLogin');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('audioKanbanLogin');
+                }
+            }
+        }
+
+        checkExistingLogin();
+
+        loginBtn.addEventListener('click', handleLogin);
+        
+        pinInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+            
+            if (!/\d/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete') {
+                e.preventDefault();
+            }
+        });
+
+        pinInput.focus();
+        
+        // Service Worker registrieren
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registriert:', registration.scope);
+                    }, function(err) {
+                        console.log('ServiceWorker Registrierung fehlgeschlagen:', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

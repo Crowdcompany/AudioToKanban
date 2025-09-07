@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3498db">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AudioKanban">
+    <title>Audio-to-Kanban - Board</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-controls">
+                <button id="recordBtn" class="record-btn">🎤 Aufgabe sprechen</button>
+                <button id="undoBtn" class="undo-btn" disabled>↶ Rückgängig</button>
+                <button id="exportBtn" class="export-btn">📁 CSV Export</button>
+                <button id="importBtn" class="import-btn">📂 CSV Import</button>
+                <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                <button id="logoutBtn" class="logout-btn">Abmelden</button>
+            </div>
+        </header>
+
+        <div class="voice-status" id="voiceStatus"></div>
+
+        <div class="kanban-board">
+            <div class="kanban-column" data-column="Offen">
+                <h2>Offen</h2>
+                <div class="task-list" id="offenList"></div>
+            </div>
+            
+            <div class="kanban-column" data-column="In Arbeit">
+                <h2>In Arbeit</h2>
+                <div class="task-list" id="inArbeitList"></div>
+            </div>
+            
+            <div class="kanban-column" data-column="Fertig">
+                <h2>Fertig</h2>
+                <div class="task-list" id="fertigList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

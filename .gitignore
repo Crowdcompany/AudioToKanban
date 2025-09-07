@@ -1,0 +1,65 @@
+# Environment variables - NIEMALS committen!
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# API Keys und Secrets
+config.js
+secrets.js
+api-keys.js
+
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+platforms/
+plugins/
+www/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Cordova/PhoneGap
+merges/
+.cordova/
+
+# Android
+*.apk
+*.ap_
+*.dex
+*.class
+local.properties
+proguard/
+
+# Keystore files
+*.keystore
+*.jks
