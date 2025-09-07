@@ -129,7 +129,7 @@ class AudioKanban {
     }
 
     updateRecordButton() {
-        this.recordBtn.textContent = this.isRecording ? '🛑 Stop' : '🎤 Aufgabe sprechen';
+        this.recordBtn.textContent = this.isRecording ? '🛑 Stop' : '🎤 Sprechen';
         this.recordBtn.classList.toggle('recording', this.isRecording);
     }
 

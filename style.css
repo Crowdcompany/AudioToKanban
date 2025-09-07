@@ -119,13 +119,13 @@ button:disabled {
 
 /* Spezielle Button-Stile */
 .record-btn {
-    background-color: #27ae60;
+    background-color: #34495e;
     font-size: 1.1rem;
     padding: 12px 20px;
 }
 
 .record-btn:hover {
-    background-color: #229954;
+    background-color: #2c3e50;
 }
 
 .record-btn.recording {
@@ -144,35 +144,35 @@ button:disabled {
 }
 
 .export-btn {
-    background-color: #f39c12;
+    background-color: #34495e;
 }
 
 .export-btn:hover {
-    background-color: #e67e22;
+    background-color: #2c3e50;
 }
 
 .import-btn {
-    background-color: #9b59b6;
+    background-color: #34495e;
 }
 
 .import-btn:hover {
-    background-color: #8e44ad;
+    background-color: #2c3e50;
 }
 
 .logout-btn {
-    background-color: #95a5a6;
+    background-color: #34495e;
 }
 
 .logout-btn:hover {
-    background-color: #7f8c8d;
+    background-color: #2c3e50;
 }
 
 .undo-btn {
-    background-color: #e67e22;
+    background-color: #34495e;
 }
 
 .undo-btn:hover:not(:disabled) {
-    background-color: #d35400;
+    background-color: #2c3e50;
 }
 
 .undo-btn:disabled {
