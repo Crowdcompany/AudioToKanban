@@ -105,7 +105,7 @@ class AudioKanban {
                 this.updateRecordButton();
             };
         } else {
-            this.voiceStatus.textContent = 'Spracherkennung wird von diesem Browser nicht unterstützt';
+            this.voiceStatus.textContent = 'Spracherkennung nur in Chrome/Edge verfügbar. Firefox/Safari werden nicht unterstützt.';
             this.voiceStatus.className = 'voice-status error';
             this.recordBtn.disabled = true;
         }
@@ -144,8 +144,8 @@ class AudioKanban {
                     'HTTP-Referer': window.location.origin,
                 },
                 body: JSON.stringify({
-                    // model: 'openai/gpt-5-mini',
-                    model: 'z-ai/glm-4.5-air:free',
+                    model: 'openai/gpt-5-mini',
+                    // model: 'z-ai/glm-4.5-air:free',
                     messages: [{
                         role: 'system',
                         content: 'Du bist ein Assistent der Aufgaben kategorisiert. Antworte IMMER nur mit einem gültigen JSON-Objekt, ohne jegliche Markdown-Formatierung oder zusätzlichen Text.'
