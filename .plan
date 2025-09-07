@@ -31,7 +31,7 @@ AudioToKanban/
 ├── .env                    # API Key (NICHT committet)
 ├── index.html             # PIN-Login + PWA Meta-Tags
 ├── app.html               # Kanban-Board Interface
-├── script.js              # Hauptlogik (1 Klasse, ~500 LOC)
+├── script.js              # Hauptlogik (1 Klasse, ~980 LOC)
 ├── style.css              # Responsive CSS Grid Design
 ├── manifest.json          # PWA Installation Config
 ├── service-worker.js      # Offline-Funktionalität
@@ -59,6 +59,9 @@ AudioToKanban/
 12. **Fuzzy-Matching**: Intelligent task lookup bei Sprachfehlern
 13. **Rückfragen-System**: Bei unklaren Spracheingaben
 14. **Auto-Updates**: GitHub Pages Deployment
+15. **Click-to-Edit**: Alle Felder (Titel, Projekt, Kommentare) bearbeitbar
+16. **Prioritäts-Management**: Visuelle Farbkodierung + Sprachsteuerung
+17. **Browser-Kompatibilität**: Chrome/Edge für Spracherkennung optimiert
 
 ## 🎤 Sprachbefehle
 
@@ -77,6 +80,12 @@ AudioToKanban/
 - "Kommentar zu Task 2: Warten auf Code Review"
 - "Notiz für Aufgabe 3: Tests schreiben"
 
+### Bearbeiten & Prioritäten
+- "Ändere Aufgabe 3 zu korrigierter Titel"
+- "Bearbeite den Titel für Aufgabe 6 in Optiker Termin"
+- "Ändere das Projekt von Aufgabe 2 zu Arbeit"
+- "Setze die Priorität auf hoch für Aufgabe 5"
+
 ## 🔧 KI-Prompt Engineering
 
 ### System Prompt
@@ -91,6 +100,9 @@ ohne jegliche Markdown-Formatierung oder zusätzlichen Text.
 - **move**: Task verschieben → {taskTitle, newColumn} 
 - **moveByNumber**: Per Nummer → {taskNumber, newColumn}
 - **addComment**: Kommentar → {taskNumber, comment}
+- **editTask**: Titel bearbeiten → {taskNumber, newTitle}
+- **editProject**: Projekt bearbeiten → {taskNumber, newProject}
+- **setPriority**: Priorität setzen → {taskNumber, priority}
 - **clarify**: Rückfrage → {spokenText, suggestions[]}
 
 ## 💾 Datenmodell
@@ -171,11 +183,11 @@ git push origin main
 
 ## 🐛 Bekannte Limitierungen
 
-1. **Spracherkennung**: Nur Chrome/Edge, Internet erforderlich
-2. **API-Limit**: User-abhängig (eigener OpenRouter Key)
-3. **Offline-KI**: Keine KI-Kategorisierung ohne Internet
-4. **Browser-Storage**: localStorage ~5MB Limit
-5. **PIN-Sicherheit**: Client-side only, nicht kryptografisch
+1. **Spracherkennung**: Nur Chrome/Edge unterstützt, Internet erforderlich
+2. **API-Abhängigkeit**: User stellt eigenen OpenRouter API Key bereit
+3. **Offline-KI**: Keine KI-Kategorisierung ohne Internet (lokale Tasks funktionieren)
+4. **Browser-Storage**: localStorage ~5MB Limit, keine Geräte-Synchronisation
+5. **PIN-Sicherheit**: Client-side only, hardcoded auf "1970"
 
 ## 🔧 Wartung & Updates
 

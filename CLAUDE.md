@@ -4,51 +4,91 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Audio-to-Kanban is a static web application that converts speech input into a Kanban board. The project uses vanilla JavaScript/HTML/CSS without frameworks and is designed to be hosted on AWS S3 as a static website.
+AudioKanban is a Progressive Web App (PWA) that converts German speech input into organized Kanban tasks using AI categorization. Built with vanilla JavaScript/HTML/CSS, it's production-ready and deployed on GitHub Pages with full offline support.
 
 ## Development Commands
 
-Since this is a static web application, there are no build commands. Development is done locally using:
-- Visual Studio Code with Live Server extension for local testing
-- Direct file editing without compilation steps
+```bash
+# Local development server
+python3 -m http.server 8000
+
+# Git workflow
+git add .
+git commit -m "Description"
+git push origin main  # Auto-deploys to GitHub Pages
+
+# Testing
+# Open http://localhost:8000 in Chrome/Edge for full functionality
+```
 
 ## Architecture
 
 ### Core Components
-- **index.html**: Main entry point with PIN-based authentication
-- **app.html**: Kanban board application interface (loaded after authentication)
-- **script.js**: Main application logic including audio recording, API calls, and Kanban management
-- **style.css**: Minimal CSS styling using CSS Grid for Kanban layout
-- **tasks.csv**: Template/example for CSV data format
+- **index.html**: PIN login (fixed: 1970) with 24h session
+- **app.html**: Kanban board with 3 columns (Offen, In Arbeit, Fertig)
+- **script.js**: AudioKanban class (~980 LOC) - complete functionality
+- **style.css**: Responsive CSS Grid design with priority color coding
+- **manifest.json**: PWA configuration for mobile installation
+- **service-worker.js**: Offline support and caching
+- **tasks.csv**: CSV template for import/export functionality
 
 ### Key Technical Details
 
-**Authentication**: Simple 4-digit PIN stored in localStorage (client-side only)
+**Authentication**: Fixed PIN "1970", 24h localStorage session
 
-**Audio Processing**: Uses Web Speech API (`SpeechRecognition`) for direct speech-to-text conversion
-- Configure with `lang: 'de-DE'` for German language support
-- No audio recording needed - direct speech recognition
+**Speech Recognition**: Web Speech API (German) - Chrome/Edge only
+- `lang: 'de-DE'` configuration
+- Real-time speech-to-text conversion
+- Graceful fallback message for unsupported browsers
 
-**API Integration**: OpenRouter API (not OpenAI) for:
-- AI categorization using prompt: "Kategorisiere diese Aufgabe: [TEXT]. Return JSON: {title, column, priority, project}"
-- API Key stored in `.env` file as `OPENROUTER_API_KEY`
+**AI Integration**: OpenRouter API with GPT-5-mini model
+- Complex prompt engineering for 8 action types (create, edit, move, priority, etc.)
+- User provides API key (stored locally, never committed)
+- Robust JSON parsing with fallback handling
 
-**Data Storage**: CSV format for import/export functionality with columns:
+**Data Persistence**: localStorage + CSV Import/Export
+```javascript
+// Task structure
+{
+  id: timestamp,
+  number: sequential,
+  title: "Task title",
+  column: "Offen|In Arbeit|Fertig", 
+  priority: "High|Medium|Low",
+  project: "Category",
+  created: ISO-timestamp,
+  status: "active",
+  comments: [{text, timestamp}]
+}
 ```
-title,column,priority,project,created,status
-```
 
-**Kanban Structure**: Three columns - "Todo", "In Progress", "Done" with priority levels: High, Medium, Low
+**UI Features**: Click-to-edit everything, fuzzy search, undo system, priority colors
 
-### Development Environment Setup
+## Sprachbefehle Referenz
 
-1. Aktiviere Python virtuelle Umgebung falls Python-Entwicklung erforderlich
-2. Use VS Code with Live Server extension
-3. Test locally before S3 deployment
-4. OpenRouter API Key is configured in `.env` file
+### Task Management
+- **Erstellen**: "GitHub Projekte aufräumen"
+- **Verschieben**: "Verschiebe Aufgabe 2 in Fertig" 
+- **Bearbeiten**: "Ändere Aufgabe 3 zu neuer Titel"
+- **Projekt**: "Ändere das Projekt von Aufgabe 2 zu Arbeit"
+- **Priorität**: "Setze die Priorität auf hoch für Aufgabe 5"
+- **Kommentare**: "Füge der Aufgabe 1 den Kommentar xyz hinzu"
 
-### CSV Handling
-Consider Papa Parse library or simple string-splitting for CSV operations. Data persistence through client-side download/upload of CSV files.
+### Editing Shortcuts
+- **Click-to-edit**: Titel, Projekt, Kommentare
+- **Keyboard**: Enter (save), Escape (cancel), Ctrl+Enter (textarea save)
+- **Add comments**: "+ Kommentar hinzufügen" Button
 
-### Mobile Considerations
-Design is mobile-friendly with appropriate button sizing and monospace font for clarity.
+## Deployment
+
+**Production**: https://crowdcompany.github.io/AudioToKanban
+**Repository**: https://github.com/Crowdcompany/AudioToKanban
+
+Auto-deployment on every `git push origin main`. Service worker handles caching and offline functionality. PWA installable on mobile devices.
+
+## Important Notes
+- PIN is hardcoded to "1970" (not configurable)
+- Requires HTTPS for Web Speech API
+- Chrome/Edge recommended for full functionality  
+- Tasks are stored locally (localStorage) per browser/device
+- CSV export enables manual data transfer between devices
