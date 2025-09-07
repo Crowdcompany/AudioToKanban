@@ -34,7 +34,7 @@ git push origin main  # Auto-deploys to GitHub Pages
 
 ### Key Technical Details
 
-**Authentication**: Fixed PIN "1970", 24h localStorage session
+**Authentication**: Fixed PIN (not visible in UI), 24h localStorage session
 
 **Speech Recognition**: Web Speech API (German) - Chrome/Edge only
 - `lang: 'de-DE'` configuration
@@ -87,7 +87,7 @@ git push origin main  # Auto-deploys to GitHub Pages
 Auto-deployment on every `git push origin main`. Service worker handles caching and offline functionality. PWA installable on mobile devices.
 
 ## Important Notes
-- PIN is hardcoded to "1970" (not configurable)
+- PIN is hardcoded (check source code, not visible in UI for security)
 - Requires HTTPS for Web Speech API
 - Chrome/Edge recommended for full functionality  
 - Tasks are stored locally (localStorage) per browser/device

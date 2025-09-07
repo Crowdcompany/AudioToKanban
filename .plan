@@ -187,7 +187,7 @@ git push origin main
 2. **API-Abhängigkeit**: User stellt eigenen OpenRouter API Key bereit
 3. **Offline-KI**: Keine KI-Kategorisierung ohne Internet (lokale Tasks funktionieren)
 4. **Browser-Storage**: localStorage ~5MB Limit, keine Geräte-Synchronisation
-5. **PIN-Sicherheit**: Client-side only, hardcoded auf "1970"
+5. **PIN-Sicherheit**: Client-side only, fester PIN ohne visuellen Hinweis
 
 ## 🔧 Wartung & Updates
 
