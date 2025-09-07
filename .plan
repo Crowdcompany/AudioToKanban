@@ -1,0 +1,241 @@
+ 
+# AudioKanban - Sprach-gesteuerte Kanban-Board PWA
+
+## ✅ FERTIGGESTELLT
+Progressive Web App (PWA) die per Sprachsteuerung Aufgaben in einem Kanban-Board verwaltet.
+
+**🔗 Live-URL:** https://crowdcompany.github.io/AudioToKanban
+**📂 Repository:** https://github.com/Crowdcompany/AudioToKanban
+
+## 🏗️ Aktuelle Architektur
+
+### Tech Stack
+- **Frontend**: Vanilla JavaScript/HTML5/CSS3
+- **Spracherkennung**: Web Speech API (nativ im Browser)
+- **KI-Kategorisierung**: OpenRouter API (GPT-5-mini)
+- **PWA**: Service Worker + Web App Manifest
+- **Hosting**: GitHub Pages (HTTPS, kostenlos)
+- **Datenspeicherung**: localStorage + CSV Import/Export
+- **Entwicklung**: Python HTTP Server (lokaler Test)
+
+### Sicherheitsmodell
+- **API Key**: User-Input bei erstem Start, lokal gespeichert
+- **Keine Server-Secrets**: .env wird nie committet (.gitignore)
+- **Client-Side Auth**: PIN-basiert, 24h gültig
+- **HTTPS**: Erforderlich für Web Speech API
+
+## 📁 Dateistruktur
+```
+AudioToKanban/
+├── .gitignore              # Schützt .env und secrets
+├── .env                    # API Key (NICHT committet)
+├── index.html             # PIN-Login + PWA Meta-Tags
+├── app.html               # Kanban-Board Interface
+├── script.js              # Hauptlogik (1 Klasse, ~500 LOC)
+├── style.css              # Responsive CSS Grid Design
+├── manifest.json          # PWA Installation Config
+├── service-worker.js      # Offline-Funktionalität
+├── tasks.csv             # CSV Template/Beispiel
+├── README.md             # Vollständige Dokumentation
+└── github-pages-setup.md # Deployment-Anleitung
+```
+
+## 🚀 Implementierte Features
+
+### Core Funktionen
+1. **PIN-Authentifizierung**: 4-stellig, 24h Session, localStorage
+2. **Spracherkennung**: Web Speech API, Deutsch (de-DE)
+3. **KI-Kategorisierung**: Text → {title, column, priority, project}
+4. **Kanban-Board**: 3 Spalten (Offen, In Arbeit, Fertig)
+5. **Task-Management**: CRUD mit eindeutigen Nummern (#1, #2, ...)
+6. **Kommentar-System**: Fließtext-Notizen pro Aufgabe
+7. **Undo-Funktion**: Letzte Änderung rückgängig machen
+8. **CSV Import/Export**: Volle Datenpersistierung
+
+### Erweiterte Features
+9. **PWA-Installation**: "Zur Startseite hinzufügen" auf Mobile
+10. **Offline-Support**: Service Worker cached alle Assets
+11. **Responsive Design**: Mobile-first, CSS Grid
+12. **Fuzzy-Matching**: Intelligent task lookup bei Sprachfehlern
+13. **Rückfragen-System**: Bei unklaren Spracheingaben
+14. **Auto-Updates**: GitHub Pages Deployment
+
+## 🎤 Sprachbefehle
+
+### Aufgaben erstellen
+- "GitHub Projekte aufräumen"
+- "E-Mails beantworten bis morgen"
+- "Meeting vorbereiten für Donnerstag"
+
+### Aufgaben verschieben
+- "Verschiebe Aufgabe 2 in Fertig"
+- "Aufgabe 1 nach In Arbeit"
+- "Task 3 zu Offen"
+
+### Kommentare hinzufügen
+- "Füge der Aufgabe 1 den Kommentar lokale Projekte müssen noch hochgeladen werden hinzu"
+- "Kommentar zu Task 2: Warten auf Code Review"
+- "Notiz für Aufgabe 3: Tests schreiben"
+
+## 🔧 KI-Prompt Engineering
+
+### System Prompt
+```
+Du bist ein Assistent der Aufgaben kategorisiert. 
+Antworte IMMER nur mit einem gültigen JSON-Objekt, 
+ohne jegliche Markdown-Formatierung oder zusätzlichen Text.
+```
+
+### Action Types
+- **create**: Neue Aufgabe → {title, column, priority, project}
+- **move**: Task verschieben → {taskTitle, newColumn} 
+- **moveByNumber**: Per Nummer → {taskNumber, newColumn}
+- **addComment**: Kommentar → {taskNumber, comment}
+- **clarify**: Rückfrage → {spokenText, suggestions[]}
+
+## 💾 Datenmodell
+
+### Task-Objekt
+```javascript
+{
+  id: timestamp,           // Unique ID
+  number: sequential,      // User-friendly #1, #2, #3
+  title: "Task title",    
+  column: "Offen|In Arbeit|Fertig",
+  priority: "High|Medium|Low",
+  project: "Kategorie",
+  created: ISO-timestamp,
+  status: "active",
+  comments: [{
+    text: "Kommentar",
+    timestamp: ISO-timestamp
+  }]
+}
+```
+
+### LocalStorage Keys
+- `audioKanbanLogin`: {pin, timestamp} (24h Session)
+- `audioKanbanTasks`: Task[] (Hauptdaten)
+- `openrouter_api_key`: API Key (User-Input)
+
+## 🎨 UI/UX Design
+
+### Farbschema
+- **Primary**: #3498db (Blau)
+- **Success**: #27ae60 (Grün) 
+- **Warning**: #f39c12 (Orange)
+- **Error**: #e74c3c (Rot)
+- **Background**: #f5f5f5 (Hellgrau)
+
+### Layout
+- **CSS Grid**: 3-Spalten Kanban (auto-responsive)
+- **Monospace Font**: Courier New (Developer-Look)
+- **Mobile-First**: Buttons min. 44px für Touch
+- **Task Cards**: Priorität farbkodiert, hover effects
+
+### Buttons
+- 🎤 **Aufgabe sprechen** (Grün, pulsiert beim Recording)
+- ↶ **Rückgängig** (Orange, disabled wenn nicht verfügbar)
+- 📁 **CSV Export** (Orange)
+- 📂 **CSV Import** (Lila)
+- **Abmelden** (Grau)
+
+## 🔄 Entwicklungs-Workflow
+
+### Lokale Entwicklung
+```bash
+# Repository klonen
+git clone https://github.com/Crowdcompany/AudioToKanban.git
+cd AudioToKanban
+
+# .env erstellen (nicht committen!)
+echo "OPENROUTER_API_KEY=sk-or-v1-..." > .env
+
+# Lokaler Server (Python 3)
+python3 -m http.server 8000
+
+# App testen
+open http://localhost:8000
+```
+
+### Deployment Pipeline
+```bash
+# Änderungen committen (automatisch ohne .env)
+git add .
+git commit -m "Update: Feature XYZ"
+git push origin main
+
+# GitHub Pages deployed automatisch nach ~5 Min
+# URL: https://crowdcompany.github.io/AudioToKanban
+```
+
+## 🐛 Bekannte Limitierungen
+
+1. **Spracherkennung**: Nur Chrome/Edge, Internet erforderlich
+2. **API-Limit**: User-abhängig (eigener OpenRouter Key)
+3. **Offline-KI**: Keine KI-Kategorisierung ohne Internet
+4. **Browser-Storage**: localStorage ~5MB Limit
+5. **PIN-Sicherheit**: Client-side only, nicht kryptografisch
+
+## 🔧 Wartung & Updates
+
+### Code-Updates
+- Änderungen direkt in GitHub Repository
+- Automatisches Deployment via GitHub Pages
+- Service Worker updated Cache automatisch
+
+### API-Updates
+- OpenRouter Model: derzeit `openai/gpt-5-mini`
+- Bei Model-Änderung: script.js Zeile ~131 anpassen
+- Fallback-Models: gpt-4o-mini, claude-3-haiku
+
+### Monitoring
+- GitHub Repository: Visitor-Statistiken unter Insights
+- Browser DevTools: Service Worker Status, PWA Installation
+- User Feedback: Issues im GitHub Repository
+
+## 📱 Mobile App Alternative
+
+### APK-Generierung (bei Bedarf)
+```bash
+# Cordova Setup (Android Studio erforderlich)
+npm install -g cordova
+cordova create AudioKanbanApp com.audiokanban.app AudioKanban
+# Dateien kopieren, config.xml konfigurieren
+cordova platform add android
+cordova build android
+```
+
+### Online APK Build Services
+- **GitHub Actions**: Kostenlos, automatisiert
+- **Voltbuilder**: $9/Monat, einfach
+- **CapGo**: Capacitor-basiert
+
+## 🎯 Zukünftige Erweiterungen
+
+### Geplante Features
+- [ ] **Drag & Drop**: Tasks zwischen Spalten verschieben
+- [ ] **Push Notifications**: Erinnerungen für Tasks
+- [ ] **Team-Collaboration**: Geteilte Boards (Backend erforderlich)
+- [ ] **Voice Commands**: Erweiterte Sprachbefehle
+- [ ] **Dark Mode**: UI-Theme Switcher
+- [ ] **Multi-Language**: i18n Support
+
+### Technische Verbesserungen
+- [ ] **IndexedDB**: Ersatz für localStorage (mehr Speicher)
+- [ ] **Background Sync**: Offline-Änderungen synchronisieren
+- [ ] **Keyboard Shortcuts**: Power-User Features
+- [ ] **Export Formats**: JSON, Trello, Jira Integration
+- [ ] **Custom Columns**: User-konfigurierbare Board-Struktur
+
+## 📞 Support & Kontakt
+
+**Entwickler**: Raimund Bauer (Raimund.Bauer@crowdcompany-ug.com)
+**Organisation**: Crowdcompany UG
+**Repository**: https://github.com/Crowdcompany/AudioToKanban
+**Issues**: GitHub Issues für Bug Reports & Feature Requests
+
+---
+*Letztes Update: 2025-01-07*
+*Status: ✅ Production Ready*
+*Version: 1.0.0*

@@ -88,7 +88,7 @@ class AudioKanban {
 
             this.recognition.onresult = (event) => {
                 const text = event.results[0][0].transcript;
-                this.voiceStatus.textContent = `Verstanden: "${text}"`;
+                this.voiceStatus.textContent = `Verstanden: "${text}" - KI verarbeitet...`;
                 this.voiceStatus.className = 'voice-status processing';
                 this.processSpokenTask(text);
             };
@@ -199,25 +199,37 @@ Ansonsten für eindeutig neue Aufgaben:
             
             if (taskData.action === 'move') {
                 this.moveTask(taskData.taskTitle, taskData.newColumn);
-                // Auto-hide für move actions
-                setTimeout(() => {
-                    this.voiceStatus.textContent = '';
-                    this.voiceStatus.className = 'voice-status';
-                }, 3000);
+                // Auto-hide für move actions - nur wenn nicht clarifying
+                if (!this.isShowingClarification) {
+                    setTimeout(() => {
+                        if (!this.isShowingClarification) {
+                            this.voiceStatus.textContent = '';
+                            this.voiceStatus.className = 'voice-status';
+                        }
+                    }, 3000);
+                }
             } else if (taskData.action === 'moveByNumber') {
                 this.moveTaskByNumber(taskData.taskNumber, taskData.newColumn);
-                // Auto-hide für moveByNumber actions  
-                setTimeout(() => {
-                    this.voiceStatus.textContent = '';
-                    this.voiceStatus.className = 'voice-status';
-                }, 3000);
+                // Auto-hide für moveByNumber actions - nur wenn nicht clarifying
+                if (!this.isShowingClarification) {
+                    setTimeout(() => {
+                        if (!this.isShowingClarification) {
+                            this.voiceStatus.textContent = '';
+                            this.voiceStatus.className = 'voice-status';
+                        }
+                    }, 3000);
+                }
             } else if (taskData.action === 'addComment') {
                 this.addCommentToTask(taskData.taskNumber, taskData.comment);
-                // Auto-hide für comment actions
-                setTimeout(() => {
-                    this.voiceStatus.textContent = '';
-                    this.voiceStatus.className = 'voice-status';
-                }, 3000);
+                // Auto-hide für comment actions - nur wenn nicht clarifying
+                if (!this.isShowingClarification) {
+                    setTimeout(() => {
+                        if (!this.isShowingClarification) {
+                            this.voiceStatus.textContent = '';
+                            this.voiceStatus.className = 'voice-status';
+                        }
+                    }, 3000);
+                }
             } else if (taskData.action === 'clarify') {
                 // KEIN Timeout für clarify - Dialog bleibt stehen!
                 this.showClarificationDialog(taskData.spokenText, taskData.suggestions);
@@ -225,11 +237,15 @@ Ansonsten für eindeutig neue Aufgaben:
                 this.addTask(taskData);
                 this.voiceStatus.textContent = `✅ Aufgabe hinzugefügt: "${taskData.title}"`;
                 this.voiceStatus.className = 'voice-status success';
-                // Auto-hide für create actions
-                setTimeout(() => {
-                    this.voiceStatus.textContent = '';
-                    this.voiceStatus.className = 'voice-status';
-                }, 3000);
+                // Auto-hide für create actions - nur wenn nicht clarifying
+                if (!this.isShowingClarification) {
+                    setTimeout(() => {
+                        if (!this.isShowingClarification) {
+                            this.voiceStatus.textContent = '';
+                            this.voiceStatus.className = 'voice-status';
+                        }
+                    }, 3000);
+                }
             }
 
         } catch (error) {
@@ -412,9 +428,14 @@ Ansonsten für eindeutig neue Aufgaben:
     }
 
     showClarificationDialog(spokenText, suggestions) {
+        console.log('🤔 Showing clarification dialog for:', spokenText);
+        
+        // Verhindere alle anderen Timeouts
+        this.isShowingClarification = true;
+        
         this.voiceStatus.innerHTML = `
             <div style="text-align: left;">
-                <p>🤔 Verstanden: "${spokenText}"</p>
+                <p><strong>🤔 Verstanden: "${spokenText}"</strong></p>
                 <p>Meinten Sie eine dieser Aufgaben?</p>
                 <div style="margin: 10px 0;">
                     ${suggestions.map((suggestion, index) => 
@@ -434,6 +455,8 @@ Ansonsten für eindeutig neue Aufgaben:
             </div>
         `;
         this.voiceStatus.className = 'voice-status clarifying';
+        
+        console.log('✅ Clarification dialog set, className:', this.voiceStatus.className);
     }
 
     selectSuggestion(taskTitle) {
@@ -456,6 +479,8 @@ Ansonsten für eindeutig neue Aufgaben:
     }
 
     cancelClarification() {
+        console.log('❌ Canceling clarification dialog');
+        this.isShowingClarification = false;
         this.voiceStatus.textContent = '';
         this.voiceStatus.className = 'voice-status';
     }
