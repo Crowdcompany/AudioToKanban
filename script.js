@@ -234,10 +234,19 @@ Ansonsten für eindeutig neue Aufgaben:
 
         } catch (error) {
             console.error('Fehler beim Verarbeiten der Aufgabe:', error);
-            console.error('Response status:', error.response?.status);
-            console.error('Response text:', await error.response?.text?.());
+            console.error('Full error details:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
             this.voiceStatus.textContent = `❌ Fehler: ${error.message}`;
             this.voiceStatus.className = 'voice-status error';
+            
+            // Auto-hide error messages
+            setTimeout(() => {
+                this.voiceStatus.textContent = '';
+                this.voiceStatus.className = 'voice-status';
+            }, 5000);
         }
     }
 
@@ -269,9 +278,9 @@ Ansonsten für eindeutig neue Aufgaben:
         const task = {
             id: Date.now(),
             number: this.getNextTaskNumber(),
-            title: taskData.title,
-            column: taskData.column,
-            priority: taskData.priority,
+            title: taskData.title || 'Unbenannte Aufgabe',
+            column: taskData.column || 'Offen',
+            priority: taskData.priority || 'Medium',
             project: taskData.project || 'Allgemein',
             created: new Date().toISOString(),
             status: 'active',
@@ -478,7 +487,9 @@ Ansonsten für eindeutig neue Aufgaben:
 
     createTaskElement(task) {
         const div = document.createElement('div');
-        div.className = `task-card priority-${task.priority.toLowerCase()}`;
+        // Sichere Priorität mit Fallback
+        const priority = (task.priority || 'medium').toLowerCase();
+        div.className = `task-card priority-${priority}`;
         div.draggable = true;
         div.dataset.taskId = task.id;
 
@@ -496,7 +507,7 @@ Ansonsten für eindeutig neue Aufgaben:
         div.innerHTML = `
             <div class="task-header">
                 <span class="task-number">#${task.number || task.id}</span>
-                <span class="task-priority ${task.priority.toLowerCase()}">${task.priority}</span>
+                <span class="task-priority ${priority}">${task.priority || 'Medium'}</span>
                 <button class="task-delete" onclick="app.deleteTask(${task.id})">×</button>
             </div>
             <div class="task-title">${task.title}</div>
