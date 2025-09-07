@@ -199,20 +199,33 @@ Ansonsten für eindeutig neue Aufgaben:
             
             if (taskData.action === 'move') {
                 this.moveTask(taskData.taskTitle, taskData.newColumn);
+                // Auto-hide für move actions
+                setTimeout(() => {
+                    this.voiceStatus.textContent = '';
+                    this.voiceStatus.className = 'voice-status';
+                }, 3000);
             } else if (taskData.action === 'moveByNumber') {
                 this.moveTaskByNumber(taskData.taskNumber, taskData.newColumn);
+                // Auto-hide für moveByNumber actions  
+                setTimeout(() => {
+                    this.voiceStatus.textContent = '';
+                    this.voiceStatus.className = 'voice-status';
+                }, 3000);
             } else if (taskData.action === 'addComment') {
                 this.addCommentToTask(taskData.taskNumber, taskData.comment);
+                // Auto-hide für comment actions
+                setTimeout(() => {
+                    this.voiceStatus.textContent = '';
+                    this.voiceStatus.className = 'voice-status';
+                }, 3000);
             } else if (taskData.action === 'clarify') {
+                // KEIN Timeout für clarify - Dialog bleibt stehen!
                 this.showClarificationDialog(taskData.spokenText, taskData.suggestions);
             } else {
                 this.addTask(taskData);
                 this.voiceStatus.textContent = `✅ Aufgabe hinzugefügt: "${taskData.title}"`;
                 this.voiceStatus.className = 'voice-status success';
-            }
-            
-            // Nur bei Erfolg/Error automatisch verschwinden lassen, NICHT bei Clarifying
-            if (!this.voiceStatus.className.includes('clarifying')) {
+                // Auto-hide für create actions
                 setTimeout(() => {
                     this.voiceStatus.textContent = '';
                     this.voiceStatus.className = 'voice-status';
